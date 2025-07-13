@@ -1,0 +1,95 @@
+############################
+# Build artifacts
+############################
+bin/
+obj/
+[Ll]og/
+artifacts/
+*.dll
+*.exe
+*.app
+*.log
+*.pdb
+*.cache
+*.config
+
+############################
+# VS Code
+############################
+.vscode/
+
+############################
+# Visual Studio
+############################
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+############################
+# NuGet
+############################
+*.nupkg
+.nuget/
+packages/
+# Exclude package directories from dotnet restore
+**/packages/*
+
+############################
+# Rider (JetBrains)
+############################
+.idea/
+*.sln.iml
+
+############################
+# OS generated files
+############################
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+
+############################
+# Environment / Secrets
+############################
+*.env
+*.env.*
+secrets.json
+
+############################
+# ASP.NET Core specific
+############################
+appsettings.*.json
+!appsettings.json  # include base config
+
+############################
+# Test & Coverage
+############################
+TestResults/
+*.coverage
+*.coveragexml
+*.codecoverage
+*.lcov
+*.trx
+
+############################
+# Others
+############################
+*.swp
+*.tmp
+*.bak
+*.old
+*.orig
+
+# Dotnet-specific
+project.lock.json
+project.fragment.lock.json
+*.tsbuildinfo
+mono_crash.*
+
+# VS for Mac
+*.csproj.user

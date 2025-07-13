@@ -1,0 +1,37 @@
+@{
+    var claim = ViewBag.Claim as Hackathon.Models.ClaimData;
+    var result = ViewBag.Result as Hackathon.Models.ValidationResult;
+    var ocrText = ViewBag.RawText as string;
+}
+
+<h2>Claim Result</h2>
+
+<p><strong>Date:</strong> @claim.Date</p>
+<p><strong>Hospital:</strong> @claim.Hospital</p>
+<p><strong>Diagnosis:</strong> @claim.Diagnosis</p>
+
+<h3>Validation</h3>
+<ul>
+    <li>Date Valid: @(result.IsDateValid ? "✅" : "❌")</li>
+    <li>Hospital Approved: @(result.IsHospitalApproved ? "✅" : "❌")</li>
+    <li>Diagnosis Covered: @(result.IsDiagnosisCovered ? "✅" : "❌")</li>
+</ul>
+
+@* <h3>Chat with AI Assistant</h3>
+<textarea id="userInput" rows="3" cols="50"></textarea><br />
+<button onclick="ask()">Ask</button>
+<p><strong>Answer:</strong> <span id="response"></span></p>
+
+<script>
+    async function ask() {
+        const question = document.getElementById("userInput").value;
+        const ocrText = `@ocrText`;
+        const res = await fetch('/Claim/AskAssistant', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question, ocrText })
+        });
+        const data = await res.json();
+        document.getElementById("response").innerText = data.response;
+    }
+</script> *@
