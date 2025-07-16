@@ -1,9 +1,112 @@
+@model List<Hackathon.Models.ClaimInfo>
 @{
-    ViewData["Title"] = "Upload Report";
+    ViewData["Title"] = "Claim Validator";
+    bool hasClaimData = Model.Any(m => m.ClaimData != null && m.ClaimData.Any());
 }
 
-<h2>Upload Medical Report</h2>
-<form method="post" enctype="multipart/form-data">
-    <input type="file" name="file" />
-    <button type="submit">Submit</button>
-</form>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body class="bg-light p-5">
+    <div class="container">
+        <h2 class="text-center text-secondary fw-bold  mb-6 text-uppercase">Upload Claim Document</h2>
+
+        <div class="row mb-3">
+            <!-- Upload Form -->
+            <div class="col-md-12 mt-5 d-flex gap-2">
+                <form asp-action="UploadDetails" asp-controller="Claim" enctype="multipart/form-data" method="post" class="d-flex gap-2 flex-wrap">
+                    <input type="text" id="name" name="name" class="form-control" placeholder="Name" required style="max-width: 200px;" />
+                    <input type="file" id="docFile" name="docFile" class="form-control" required style="max-width: 300px;" />
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+
+                @if (Model != null && Model.Any())
+                {
+                    <!-- Validate Button -->
+                    <form asp-action="Validate" asp-controller="Claim" method="post">
+                        <button type="submit" class="btn btn-success">Validate</button>
+                    </form>
+                    <!-- Reset Button -->
+                    <form asp-action="Reset" asp-controller="Claim" method="post">
+                        <button type="submit" class="btn btn-warning">Reset</button>
+                    </form>                  
+                }
+            </div>
+        </div>
+
+        <!-- Table Display -->
+        @if (Model != null && Model.Any())
+        {
+            <table class="table table-bordered table-striped">
+                <thead class="table-dark">
+                    <tr>
+                        <th> Name</th>
+                        <th>Document</th>
+                        @if (hasClaimData)
+                        {
+                            <th>Claims Data</th>
+                        }
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var doc in Model)
+                    {
+                        <tr>
+                            <td>@doc.Name</td>
+                            <td>@doc.FileName</td>
+                            @if (hasClaimData)
+                            {
+                                <td>
+                                    @if (doc.ClaimData != null && doc.ClaimData.Any())
+                                    {
+                                        <ul class="mb-0">
+                                            @foreach (var claim in doc.ClaimData)
+                                            {
+                                                <li>@claim</li>
+                                            }
+                                        </ul>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                            }
+                            <td>
+                                @if( doc.Status == "Rejected")
+                                {
+                                    <a asp-action="ViewDetails"
+                                     asp-controller="Claim"
+                                     asp-route-filename="@doc.FileName"
+                                     asp-route-name="@doc.Name"
+                                     asp-route-status="@doc.Status"
+                                     class="badge bg-danger text-dark text-decoration-none">
+                                     @doc.Status
+                                  </a>
+                                }
+                                else if (doc.Status=="Ready to validate")
+                                {
+                                    <span class="badge bg-primary">@doc.Status</span>
+                                }
+                                else
+                                {
+                                  <span class="badge bg-success">@doc.Status</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="alert alert-info">No documents uploaded yet.</div>
+        }
+    </div>
+</body>
+</html>

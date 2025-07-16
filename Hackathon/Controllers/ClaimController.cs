@@ -2,41 +2,141 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.Http;
 using System.IO;
+using System.Web;
 using Hackathon.Models;
 using Hackathon.Services;
+using Microsoft.AspNetCore.Hosting.Server;
+using System.Collections.Generic;
+using System.IO;
 
 public class ClaimController : Controller
 {
     private readonly OcrService _ocrService = new();
     private readonly OpenAiService _openAiService = new();
     private readonly ValidationService _validationService = new();
-
+    private static List<ClaimInfo> _claimInfo = new();
+    private readonly IWebHostEnvironment _env;
+    public ClaimController(IWebHostEnvironment env)
+    {
+        _env = env;
+    }
     [HttpGet]
-    public IActionResult Upload() => View();
+    public IActionResult Upload()
+    {
+        return View(_claimInfo);
+    }
+    [HttpPost]
+    public async Task<IActionResult> UploadDetails(string name, IFormFile docFile)
+    {
+        if (docFile != null && docFile.Length > 0 && !string.IsNullOrEmpty(name))
+        {
+            //string uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
+            //Directory.CreateDirectory(uploadsFolder);
+            var uploadsFolder = Path.Combine("uploads", docFile.FileName);
+            Directory.CreateDirectory("uploads");
+
+            string fileName = Path.GetFileName(docFile.FileName);
+            //string filePath = Path.Combine(uploadsFolder, fileName);
+
+            using (var stream = new FileStream(uploadsFolder, FileMode.Create))
+            {
+                await docFile.CopyToAsync(stream);
+            }
+
+            _claimInfo.Add(new ClaimInfo
+            {
+                Name = name,
+                FileName = fileName,
+                Status = "Ready to validate"
+            });
+        }
+
+        return RedirectToAction("Upload");
+    }
 
     [HttpPost]
-    public async Task<IActionResult> Upload(IFormFile file)
+    public IActionResult Reset()
     {
-        if (file == null || file.Length == 0)
-            return View();
+        _claimInfo.Clear();
+        return RedirectToAction("Upload");
+    }
 
-        var filePath = Path.Combine("uploads", file.FileName);
-        Directory.CreateDirectory("uploads");
+    [HttpPost]
+    public async Task<IActionResult> Validate()
+    {
+        string uploadPath = Path.Combine(_env.WebRootPath, "uploads");
 
-        using (var stream = new FileStream(filePath, FileMode.Create))
+        foreach (var doc in _claimInfo)
         {
-            await file.CopyToAsync(stream);
+            string filePath = Path.Combine("uploads", doc.FileName);
+
+            if (!System.IO.File.Exists(filePath))
+            {
+                doc.Status = "File Not Found";
+                continue;
+            }
+
+            // Example: Check file size (e.g., max 5MB)
+            var fileInfo = new FileInfo(filePath);
+            if (fileInfo.Length > 5 * 1024 * 1024)
+            {
+                doc.Status = "File Too Large";
+                continue;
+            }
+
+            // Optional: Check file extension
+            var allowedExtensions = new[] { ".pdf", ".jpg", ".png" };
+            string extension = Path.GetExtension(doc.FileName).ToLowerInvariant();
+            if (!allowedExtensions.Contains(extension))
+            {
+                doc.Status = "Invalid File Type";
+                continue;
+            }
+
+            var ocrText = _ocrService.ExtractText(filePath);
+            var jsonOutput = await _openAiService.ExtractFieldsAsync(ocrText);
+            var claimData = JsonConvert.DeserializeObject<ClaimData>(jsonOutput);
+            doc.ClaimData = new List<string>
+            {
+                "Date:" + claimData.Date,
+                "Hospital:" + claimData.Hospital,
+                "Diagnosis:" + claimData.Diagnosis
+            };
+            var validation = _validationService.Validate(claimData);
+
+            // All checks passed
+            if (validation.IsDateValid && validation.IsDiagnosisCovered && validation.IsHospitalApproved)
+            {
+                doc.Status = "Approved";
+            }
+            else
+            {
+                doc.Status = "Rejected";
+            }
         }
+        return RedirectToAction("Upload");
+    }
+
+
+    [HttpGet]
+    public async Task<IActionResult> ViewDetails(string fileName, string name, string status)
+    {
+        if (string.IsNullOrEmpty(fileName))
+            return BadRequest("Filename is required.");
+
+        var filePath = Path.Combine("uploads", fileName);
+        Directory.CreateDirectory("uploads");
 
         var ocrText = _ocrService.ExtractText(filePath);
         var jsonOutput = await _openAiService.ExtractFieldsAsync(ocrText);
         var claimData = JsonConvert.DeserializeObject<ClaimData>(jsonOutput);
-        
-        var validation = _validationService.Validate(claimData);
 
+        var validation = _validationService.Validate(claimData);
+        ViewBag.Name = name;
         ViewBag.Claim = claimData;
         ViewBag.Result = validation;
         ViewBag.RawText = ocrText;
+        ViewBag.Status = status;
 
         return View("Result");
     }

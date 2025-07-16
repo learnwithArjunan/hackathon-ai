@@ -2,20 +2,37 @@
     var claim = ViewBag.Claim as Hackathon.Models.ClaimData;
     var result = ViewBag.Result as Hackathon.Models.ValidationResult;
     var ocrText = ViewBag.RawText as string;
+    var name = ViewBag.Name as string;
+    var status = ViewBag.Status as string;
 }
 
-<h2>Claim Result</h2>
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h4 class="card-title text-center mb-3">Claim Result for <span class="text-primary">@name</span></h4>
 
-<p><strong>Date:</strong> @claim.Date</p>
-<p><strong>Hospital:</strong> @claim.Hospital</p>
-<p><strong>Diagnosis:</strong> @claim.Diagnosis</p>
+        <div class="mb-3">
+            <p class="mb-1"><strong>Date:</strong> @claim.Date</p>
+            <p class="mb-1"><strong>Hospital:</strong> @claim.Hospital</p>
+            <p class="mb-1"><strong>Diagnosis:</strong> @claim.Diagnosis</p>
+        </div>
 
-<h3>Validation</h3>
-<ul>
-    <li>Date Valid: @(result.IsDateValid ? "✅" : "❌")</li>
-    <li>Hospital Approved: @(result.IsHospitalApproved ? "✅" : "❌")</li>
-    <li>Diagnosis Covered: @(result.IsDiagnosisCovered ? "✅" : "❌")</li>
-</ul>
+        <h5 class="mt-4 mb-3">Status : <span class="text-danger">@status</span></h4></h5>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item d-flex justify-content-between">
+                <span>Date Valid</span>
+                <span class="fw-bold">@((result.IsDateValid ? "✅" : "❌"))</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+                <span>Hospital Approved</span>
+                <span class="fw-bold">@((result.IsHospitalApproved ? "✅" : "❌"))</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+                <span>Diagnosis Covered</span>
+                <span class="fw-bold">@((result.IsDiagnosisCovered ? "✅" : "❌"))</span>
+            </li>
+        </ul>
+    </div>
+</div>
 
 @* <h3>Chat with AI Assistant</h3>
 <textarea id="userInput" rows="3" cols="50"></textarea><br />
