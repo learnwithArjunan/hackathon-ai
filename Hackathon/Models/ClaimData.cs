@@ -12,6 +12,7 @@ namespace Hackathon.Models
         public decimal NonClaimableTotal { get; set; }
         public decimal ApprovedAmount { get; set; }
         public decimal TotalAmount => ApprovedAmount + NonClaimableTotal;
+        public decimal ClaimedAmount { get; set; }
     }
 
     public class BillingItem

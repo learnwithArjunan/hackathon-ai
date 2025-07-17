@@ -4,6 +4,7 @@
     var ocrText = ViewBag.RawText as string;
     var name = ViewBag.Name as string;
     var status = ViewBag.Status as string;
+    var claimType = ViewBag.claimType as string;
 }
 
 <!DOCTYPE html>
@@ -171,11 +172,15 @@
                             }
                         </ul>
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
+                                <p class="mb-1"><strong>Total Claim Amount:</strong></p>
+                                <p class="amount-highlight">₹@ViewBag.TotalAmount</p>
+                            </div>
+                            <div class="col-md-4">
                                 <p class="mb-1"><strong>Amount Deducted:</strong></p>
                                 <p class="amount-highlight">₹@ViewBag.NonPayableAmount</p>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <p class="mb-1"><strong>Approved Claim Amount:</strong></p>
                                 <p class="amount-highlight text-success">₹@ViewBag.ApprovedAmount</p>
                             </div>

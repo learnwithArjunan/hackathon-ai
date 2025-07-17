@@ -118,7 +118,7 @@
 
         <!-- Step 1: Choose Claim Type -->
         <div class="text-center mb-5">
-            <h4 class="mb-4 fw-semibold text-dark">Step 1: Select Validation Type</h4>
+            <h4 class="mb-4 fw-semibold text-dark">Step 1: What would you like to validate?</h4>
             <div class="d-flex justify-content-center gap-3 flex-wrap">
                 <a href="@Url.Action("Upload", "Claim", new { type = "diagnosis" })"
                    class="btn btn-lg claim-type-btn @(currentType == "diagnosis" ? "btn-primary" : "btn-outline-primary")">
@@ -189,10 +189,10 @@
                                 <th>Patient</th>
                                 <th>Document</th>
                                 <th>Type</th>
-                                @if (hasClaimData)
+                               @*  @if (hasClaimData)
                                 {
                                     <th>Claims Data</th>
-                                }
+                                } *@
                                 <th class="text-center">Status</th>
                             </tr>
                         </thead>
@@ -210,7 +210,7 @@
                                             @doc.ClaimType?.ToUpperInvariant()
                                         </span>
                                     </td>
-                                    @if (hasClaimData)
+                                    @* @if (hasClaimData)
                                     {
                                         <td>
                                             @if (doc.ClaimData != null && doc.ClaimData.Any())
@@ -232,7 +232,7 @@
                                                 <span class="text-muted">—</span>
                                             }
                                         </td>
-                                    }
+                                    } *@
                                     <td class="text-center">
                                         @if (doc.Status == "Rejected")
                                         {
@@ -240,6 +240,7 @@
                                                asp-controller="Claim"
                                                asp-route-filename="@doc.FileName"
                                                asp-route-name="@doc.Name"
+                                               asp-route-claimtype="@doc.ClaimType?.ToUpperInvariant()"
                                                asp-route-status="@doc.Status"
                                                class="badge bg-danger bg-opacity-10 text-danger text-decoration-none badge-pill">
                                                 <i class="fas fa-times-circle me-1"></i> @doc.Status
@@ -257,8 +258,9 @@
                                                asp-controller="Claim"
                                                asp-route-filename="@doc.FileName"
                                                asp-route-name="@doc.Name"
+                                               asp-route-claimtype="@doc.ClaimType?.ToUpperInvariant()"
                                                asp-route-status="@doc.Status"
-                                               class="badge bg-success bg-opacity-10 text-success badge-pill">
+                                                class="badge bg-success bg-opacity-10 text-success badge-pill">
                                                 <i class="fas fa-check-circle me-1"></i> @doc.Status
                                             </a>
                                         }

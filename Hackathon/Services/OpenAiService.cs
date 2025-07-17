@@ -65,6 +65,7 @@ namespace Hackathon.Services
         ],
         "nonClaimableTotal": 300,
         "approvedAmount": 7890,
+        "TotalAmount": 8190,
         "Date": "2023-10-01",
         "Hospital Name": "Apollo Hospital",
         "Diagnosis": "Bronchitis"

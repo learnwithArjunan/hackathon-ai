@@ -127,7 +127,7 @@ public class ClaimController : Controller
 
 
     [HttpGet]
-    public async Task<IActionResult> ViewDetails(string fileName, string name, string status)
+    public async Task<IActionResult> ViewDetails(string fileName, string name, string status, string claimType)
     {
         if (string.IsNullOrEmpty(fileName))
             return BadRequest("Filename is required.");
@@ -136,7 +136,13 @@ public class ClaimController : Controller
         Directory.CreateDirectory("uploads");
 
         var ocrText = _ocrService.ExtractText(filePath);
-        var jsonOutput = await _openAiService.ExtractFieldsAsync(ocrText);
+        string jsonOutput = string.Empty;
+
+        if (claimType.ToLower() == "diagnosis")
+            jsonOutput = await _openAiService.ExtractFieldsAsync(ocrText);
+        else if (claimType.ToLower() == "itemized")
+            jsonOutput = await _openAiService.GetNonClaimableItemsAsync(ocrText);
+
         var claimData = JsonConvert.DeserializeObject<ClaimData>(jsonOutput);
 
         var validation = _validationService.Validate(claimData);
@@ -145,10 +151,12 @@ public class ClaimController : Controller
         ViewBag.Result = validation;
         ViewBag.RawText = ocrText;
         ViewBag.Status = status;
+        ViewBag.claimType = claimType;
 
         ViewBag.NonPayableItems = validation.NonPayableItems;
         ViewBag.NonPayableAmount = validation.NonClaimableTotal;
         ViewBag.ApprovedAmount = validation.ApprovedAmount;
+        ViewBag.TotalAmount = validation.ClaimedAmount;
 
         return View("Result");
     }

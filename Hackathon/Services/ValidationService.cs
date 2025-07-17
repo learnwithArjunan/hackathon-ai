@@ -32,7 +32,7 @@ namespace Hackathon.Services
                         result.NonClaimableTotal += item.Amount;
                     }
                 }
-
+                result.ClaimedAmount = data.TotalAmount;
                 result.ApprovedAmount = data.TotalAmount - result.NonClaimableTotal;
             }
 

@@ -10,5 +10,6 @@ namespace Hackathon.Models
         public List<string> NonPayableItems { get; set; } = new();
         public decimal NonClaimableTotal { get; set; }
         public decimal ApprovedAmount { get; set; }
+        public decimal ClaimedAmount { get; set; }
     }
 }
