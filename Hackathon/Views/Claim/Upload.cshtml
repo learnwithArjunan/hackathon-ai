@@ -12,125 +12,335 @@
     <meta charset="utf-8" />
     <title>@ViewData["Title"]</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --success-color: #4cc9f0;
+            --light-bg: #f8f9fa;
+            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            background-color: #f5f7fb;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .claim-type-btn {
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            font-weight: 500;
+            min-width: 220px;
+        }
+
+            .claim-type-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+
+            .claim-type-btn.active {
+                background-color: var(--primary-color);
+                color: white !important;
+                border-color: var(--primary-color);
+            }
+
+        .upload-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 2rem;
+        }
+
+        .document-table {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+        }
+
+            .document-table th {
+                background-color: var(--primary-color);
+                color: white;
+                font-weight: 500;
+            }
+
+        .badge-pill {
+            padding: 0.5em 0.8em;
+            border-radius: 50px;
+            font-weight: 500;
+        }
+
+        .form-control, .btn {
+            border-radius: 8px !important;
+        }
+
+        .action-btns .btn {
+            min-width: 100px;
+        }
+
+        /* New styles for form handling */
+        .form-section {
+            position: relative;
+        }
+
+        .submit-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+    </style>
 </head>
-<body class="bg-light p-5">
-    <div class="container">
-        <h2 class="text-center text-secondary fw-bold mb-5 text-uppercase">Upload Claim Document</h2>
+<body>
+    <div class="container py-4">
+        <!-- Header Section -->
+        <div class="header text-center">
+            <h1 class="display-5 fw-bold mb-3"><i class="fas fa-file-medical me-2"></i>Claim Document Validator</h1>
+            <p class="lead mb-0">Upload and validate your medical claim documents</p>
+        </div>
 
         <!-- Step 1: Choose Claim Type -->
-        <div class="text-center mb-4">
-            <h5 class="mb-3">Choose your claim validation type</h5>
-            <div class="d-flex justify-content-center gap-4 flex-wrap">
-                <a href="@Url.Action("Upload", "Claim", new { type = "diagnosis" })" class="btn btn-outline-secondary px-4 py-2 @(currentType == "diagnosis" ? "active" : "")">
-                    Diagnosis Report Validation
+        <div class="text-center mb-5">
+            <h4 class="mb-4 fw-semibold text-dark">Step 1: Select Validation Type</h4>
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                <a href="@Url.Action("Upload", "Claim", new { type = "diagnosis" })"
+                   class="btn btn-lg claim-type-btn @(currentType == "diagnosis" ? "btn-primary" : "btn-outline-primary")">
+                    <i class="fas fa-diagnoses me-2"></i>Diagnosis Report
                 </a>
-                <a href="@Url.Action("Upload", "Claim", new { type = "itemized" })" class="btn btn-outline-info px-4 py-2 @(currentType == "itemized" ? "active" : "")">
-                    Eligible Claim from Itemized Bill
+                <a href="@Url.Action("Upload", "Claim", new { type = "itemized" })"
+                   class="btn btn-lg claim-type-btn @(currentType == "itemized" ? "btn-primary" : "btn-outline-primary")">
+                    <i class="fas fa-receipt me-2"></i>Itemized Bill
                 </a>
             </div>
         </div>
 
         <!-- Step 2: Upload Form -->
-        <div class="row mb-3">
-            <div class="col-md-12 mt-4 d-flex gap-2 flex-wrap">
-                <form asp-action="UploadDetails" asp-controller="Claim" enctype="multipart/form-data" method="post" class="d-flex gap-2 flex-wrap">
-                    <input type="hidden" name="claimType" value="@currentType" />
-                    <input type="text" id="name" name="name" class="form-control" placeholder="Name" required style="max-width: 200px;" />
-                    <input type="file" id="docFile" name="docFile" class="form-control" required style="max-width: 300px;" />
-                    <button type="submit" class="btn btn-primary">Save</button>
-                </form>
+        <div class="upload-card form-section">
+            <div class="submit-overlay">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+            <h4 class="mb-4 fw-semibold text-dark">Step 2: Upload Document</h4>
+            <div class="row">
+                <div class="col-md-12">
+                    <form id="mainForm" asp-action="UploadDetails" asp-controller="Claim" enctype="multipart/form-data" method="post" class="row g-3">
+                        <input type="hidden" name="claimType" value="@currentType" />
 
-                @if (Model != null && Model.Any())
-                {
-                    <form asp-action="Validate" asp-controller="Claim" method="post">
-                        <button type="submit" class="btn btn-success">Validate</button>
+                        <div class="col-md-3">
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-user"></i></span>
+                                <input type="text" id="name" name="name" class="form-control" placeholder="Patient Name" required />
+                            </div>
+                        </div>
+
+                        <div class="col-md-5">
+                            <div class="input-group">
+                                <input type="file" id="docFile" name="docFile" class="form-control" required />
+                                <button type="submit" class="btn btn-primary upload-btn">
+                                    <i class="fas fa-upload me-2"></i>Upload
+                                </button>
+                            </div>
+                        </div>
+
+                        @if (Model != null && Model.Any())
+                        {
+                            <div class="col-md-4 action-btns d-flex gap-2">
+                                <button type="button" id="validateBtn" class="btn btn-success flex-grow-1">
+                                    <i class="fas fa-check-circle me-2"></i>Validate All
+                                </button>
+                                <button type="button" id="resetBtn" class="btn btn-warning">
+                                    <i class="fas fa-redo me-2"></i>Reset
+                                </button>
+                            </div>
+                        }
                     </form>
-                    <form asp-action="Reset" asp-controller="Claim" method="post">
-                        <button type="submit" class="btn btn-warning">Reset</button>
-                    </form>
-                }
+                </div>
             </div>
         </div>
 
         <!-- Step 3: Display Uploaded Documents -->
+        <h4 class="mb-3 fw-semibold text-dark">Step 3: Uploaded Documents</h4>
+
         @if (Model != null && Model.Any())
         {
-            <table class="table table-bordered table-striped">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Name</th>
-                        <th>Document</th>
-                        <th>Type</th>
-                        @if (hasClaimData)
-                        {
-                            <th>Claims Data</th>
-                        }
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var doc in Model)
-                    {
-                        <tr>
-                            <td>@doc.Name</td>
-                            <td>@doc.FileName</td>
-                            <td>@doc.ClaimType?.ToUpperInvariant()</td>
-                            @if (hasClaimData)
+            <div class="document-table">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Patient</th>
+                                <th>Document</th>
+                                <th>Type</th>
+                                @if (hasClaimData)
+                                {
+                                    <th>Claims Data</th>
+                                }
+                                <th class="text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var doc in Model)
                             {
-                                <td>
-                                    @if (doc.ClaimData != null && doc.ClaimData.Any())
+                                <tr>
+                                    <td class="fw-semibold">@doc.Name</td>
+                                    <td>
+                                        <i class="fas fa-file-pdf text-danger me-2"></i>
+                                        @doc.FileName
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark">
+                                            @doc.ClaimType?.ToUpperInvariant()
+                                        </span>
+                                    </td>
+                                    @if (hasClaimData)
                                     {
-                                        <ul class="mb-0">
-                                            @foreach (var claim in doc.ClaimData)
+                                        <td>
+                                            @if (doc.ClaimData != null && doc.ClaimData.Any())
                                             {
-                                                <li>@claim</li>
+                                                <div class="dropdown">
+                                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                        View Claims (@doc.ClaimData.Count)
+                                                    </button>
+                                                    <ul class="dropdown-menu">
+                                                        @foreach (var claim in doc.ClaimData)
+                                                        {
+                                                            <li><a class="dropdown-item small">@claim</a></li>
+                                                        }
+                                                    </ul>
+                                                </div>
                                             }
-                                        </ul>
+                                            else
+                                            {
+                                                <span class="text-muted">—</span>
+                                            }
+                                        </td>
                                     }
-                                    else
-                                    {
-                                        <span class="text-muted">—</span>
-                                    }
-                                </td>
+                                    <td class="text-center">
+                                        @if (doc.Status == "Rejected")
+                                        {
+                                            <a asp-action="ViewDetails"
+                                               asp-controller="Claim"
+                                               asp-route-filename="@doc.FileName"
+                                               asp-route-name="@doc.Name"
+                                               asp-route-status="@doc.Status"
+                                               class="badge bg-danger bg-opacity-10 text-danger text-decoration-none badge-pill">
+                                                <i class="fas fa-times-circle me-1"></i> @doc.Status
+                                            </a>
+                                        }
+                                        else if (doc.Status == "Ready to validate")
+                                        {
+                                            <span class="badge bg-primary bg-opacity-10 text-primary badge-pill">
+                                                <i class="fas fa-hourglass-half me-1"></i> @doc.Status
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <a asp-action="ViewDetails"
+                                               asp-controller="Claim"
+                                               asp-route-filename="@doc.FileName"
+                                               asp-route-name="@doc.Name"
+                                               asp-route-status="@doc.Status"
+                                               class="badge bg-success bg-opacity-10 text-success badge-pill">
+                                                <i class="fas fa-check-circle me-1"></i> @doc.Status
+                                            </a>
+                                        }
+                                    </td>
+                                </tr>
                             }
-                            <td>
-                                @if (doc.Status == "Rejected")
-                                {
-                                    <a asp-action="ViewDetails"
-                                       asp-controller="Claim"
-                                       asp-route-filename="@doc.FileName"
-                                       asp-route-name="@doc.Name"
-                                       asp-route-status="@doc.Status"
-                                       class="badge bg-danger text-dark text-decoration-none">
-                                        @doc.Status
-                                    </a>
-                                }
-                                else if (doc.Status == "Ready to validate")
-                                {
-                                    <span class="badge bg-primary">@doc.Status</span>
-                                }
-                                else
-                                {
-                                    @* <span class="badge bg-success">@doc.Status</span> *@
-                                    <a asp-action="ViewDetails"
-                                       asp-controller="Claim"
-                                       asp-route-filename="@doc.FileName"
-                                       asp-route-name="@doc.Name"
-                                       asp-route-status="@doc.Status"
-                                       class="badge bg-success">
-                                        @doc.Status
-                                    </a>
-                                }
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         }
         else
         {
-            <div class="alert alert-info">No documents uploaded yet.</div>
+            <div class="alert alert-info d-flex align-items-center">
+                <i class="fas fa-info-circle me-2"></i>
+                No documents uploaded yet. Please upload a document to begin validation.
+            </div>
         }
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Handle form submission
+            const mainForm = document.getElementById('mainForm');
+            const validateBtn = document.getElementById('validateBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const overlay = document.querySelector('.submit-overlay');
+
+            if (mainForm) {
+                mainForm.addEventListener('submit', function (e) {
+                    // Show loading overlay
+                    overlay.style.display = 'flex';
+                });
+            }
+
+            // Handle validate button click
+            if (validateBtn) {
+                validateBtn.addEventListener('click', function () {
+                    // Create a temporary form for validation
+                    const tempForm = document.createElement('form');
+                    tempForm.method = 'post';
+                    tempForm.action = '@Url.Action("Validate", "Claim")';
+
+                    // Add CSRF token if needed
+                    const csrfToken = document.querySelector('input[name="__RequestVerificationToken"]');
+                    if (csrfToken) {
+                        tempForm.appendChild(csrfToken.cloneNode());
+                    }
+
+                    // Show loading overlay
+                    overlay.style.display = 'flex';
+
+                    // Submit the form
+                    document.body.appendChild(tempForm);
+                    tempForm.submit();
+                });
+            }
+
+            // Handle reset button click
+            if (resetBtn) {
+                resetBtn.addEventListener('click', function () {
+                    // Create a temporary form for reset
+                    const tempForm = document.createElement('form');
+                    tempForm.method = 'post';
+                    tempForm.action = '@Url.Action("Reset", "Claim")';
+
+                    // Add CSRF token if needed
+                    const csrfToken = document.querySelector('input[name="__RequestVerificationToken"]');
+                    if (csrfToken) {
+                        tempForm.appendChild(csrfToken.cloneNode());
+                    }
+
+                    // Show loading overlay
+                    overlay.style.display = 'flex';
+
+                    // Submit the form
+                    document.body.appendChild(tempForm);
+                    tempForm.submit();
+                });
+            }
+        });
+    </script>
 </body>
 </html>

@@ -132,8 +132,6 @@ public class ClaimController : Controller
         if (string.IsNullOrEmpty(fileName))
             return BadRequest("Filename is required.");
 
-        string claimType = Request.Form["claimType"];
-
         var filePath = Path.Combine("uploads", fileName);
         Directory.CreateDirectory("uploads");
 

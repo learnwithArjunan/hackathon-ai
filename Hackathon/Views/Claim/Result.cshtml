@@ -6,65 +6,193 @@
     var status = ViewBag.Status as string;
 }
 
-<div class="card shadow-sm mb-4">
-    <div class="card-body">
-        <h4 class="card-title text-center mb-3">Claim Result for <span class="text-primary">@name</span></h4>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Claim Validation Result</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --success-color: #4cc9f0;
+            --warning-color: #f8961e;
+            --danger-color: #f94144;
+            --light-bg: #f8f9fa;
+            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
 
-        <div class="mb-3">
-            <p class="mb-1"><strong>Date:</strong> @claim.Date</p>
-            <p class="mb-1"><strong>Hospital:</strong> @claim.Hospital</p>
-            <p class="mb-1"><strong>Diagnosis:</strong> @claim.Diagnosis</p>
+        body {
+            background-color: #f5f7fb;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 2rem 0;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 2rem;
+            border-top: 4px solid var(--primary-color);
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .validation-item {
+            border-left: 4px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+            .validation-item:hover {
+                background-color: rgba(67, 97, 238, 0.05);
+                border-left-color: var(--primary-color);
+            }
+
+        .alert-modified {
+            border-radius: 10px;
+            box-shadow: var(--card-shadow);
+            border-left: 4px solid var(--warning-color);
+        }
+
+        .amount-highlight {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Main Result Card -->
+        <div class="result-card">
+            <div class="text-center mb-4">
+                <h2 class="fw-bold">
+                    <i class="fas fa-file-medical me-2 text-primary"></i>
+                    Claim Result for <span class="text-primary">@name</span>
+                </h2>
+                <div class="d-flex justify-content-center mt-3">
+                    <span class="status-badge @(status == "Approved" ? "bg-success bg-opacity-10 text-success" : "bg-danger bg-opacity-10 text-danger")">
+                        @if (status == "Approved")
+                        {
+                            <i class="fas fa-check-circle me-2"></i>
+                        }
+                        else
+                        {
+                            <i class="fas fa-times-circle me-2"></i>
+                        }
+                        @status
+                    </span>
+                </div>
+            </div>
+
+            <!-- Claim Details -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="p-3 bg-light rounded">
+                        <h5 class="text-muted mb-3"><i class="far fa-calendar-alt me-2"></i>Date</h5>
+                        <p class="mb-0 fs-5">@claim.Date</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3 bg-light rounded">
+                        <h5 class="text-muted mb-3"><i class="fas fa-hospital me-2"></i>Hospital</h5>
+                        <p class="mb-0 fs-5">@claim.Hospital</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3 bg-light rounded">
+                        <h5 class="text-muted mb-3"><i class="fas fa-diagnoses me-2"></i>Diagnosis</h5>
+                        <p class="mb-0 fs-5">@claim.Diagnosis</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Validation Results -->
+            <h4 class="mb-3 fw-semibold text-dark">
+                <i class="fas fa-clipboard-check me-2"></i>Validation Results
+            </h4>
+            <div class="list-group mb-4">
+                <div class="list-group-item validation-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-1">Date Validation</h5>
+                            @* <p class="mb-0 text-muted">Check if the claim date is within valid period</p> *@
+                        </div>
+                        <span class="badge @(result.IsDateValid ? "bg-success" : "bg-danger") rounded-pill p-2">
+                            @(result.IsDateValid ? "Valid" : "Invalid")
+                        </span>
+                    </div>
+                </div>
+                <div class="list-group-item validation-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-1">Hospital Approval</h5>
+                            @* <p class="mb-0 text-muted">Check if hospital is in our network</p> *@
+                        </div>
+                        <span class="badge @(result.IsHospitalApproved ? "bg-success" : "bg-danger") rounded-pill p-2">
+                            @(result.IsHospitalApproved ? "Approved" : "Not Approved")
+                        </span>
+                    </div>
+                </div>
+                <div class="list-group-item validation-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-1">Diagnosis Coverage</h5>
+                            @* <p class="mb-0 text-muted">Check if diagnosis is covered by policy</p> *@
+                        </div>
+                        <span class="badge @(result.IsDiagnosisCovered ? "bg-success" : "bg-danger") rounded-pill p-2">
+                            @(result.IsDiagnosisCovered ? "Covered" : "Not Covered")
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            @if (ViewBag.NonPayableItems?.Count > 0)
+            {
+                <!-- Non-Payable Items -->
+                <div class="alert alert-warning alert-modified">
+                    <h4 class="alert-heading">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Non-Claimable Items Detected
+                    </h4>
+                    <hr>
+                    <div class="mb-3">
+                        <ul class="mb-3">
+                            @foreach (var item in ViewBag.NonPayableItems)
+                            {
+                                <li>@item</li>
+                            }
+                        </ul>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Amount Deducted:</strong></p>
+                                <p class="amount-highlight">₹@ViewBag.NonPayableAmount</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Approved Claim Amount:</strong></p>
+                                <p class="amount-highlight text-success">₹@ViewBag.ApprovedAmount</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
         </div>
 
-        <h5 class="mt-4 mb-3">Status : <span class="text-danger">@status</span></h4></h5>
-        <ul class="list-group list-group-flush">
-            <li class="list-group-item d-flex justify-content-between">
-                <span>Date Valid</span>
-                <span class="fw-bold">@((result.IsDateValid ? "✅" : "❌"))</span>
-            </li>
-            <li class="list-group-item d-flex justify-content-between">
-                <span>Hospital Approved</span>
-                <span class="fw-bold">@((result.IsHospitalApproved ? "✅" : "❌"))</span>
-            </li>
-            <li class="list-group-item d-flex justify-content-between">
-                <span>Diagnosis Covered</span>
-                <span class="fw-bold">@((result.IsDiagnosisCovered ? "✅" : "❌"))</span>
-            </li>
-        </ul>
+        <!-- Optional: Action Buttons -->
+        <div class="d-flex justify-content-center gap-3">
+            <a href="@Url.Action("Upload", "Claim")" class="btn btn-primary px-4 py-2">
+                <i class="fas fa-upload me-2"></i>Upload Another Claim
+            </a>
+        </div>
     </div>
-</div>
 
-@if (ViewBag.NonPayableItems.Count > 0)
-{
-    <div class="alert alert-warning">
-        <strong>Non-Claimable Items Detected:</strong>
-        <ul>
-            @foreach (var item in ViewBag.NonPayableItems)
-            {
-                <li>@item</li>
-            }
-        </ul>
-        <p><strong>Amount Deducted:</strong> ₹@ViewBag.NonPayableAmount</p>
-        <p><strong>Approved Claim Amount:</strong> ₹@ViewBag.ApprovedAmount</p>
-    </div>
-}
-
-
-@* <h3>Chat with AI Assistant</h3>
-<textarea id="userInput" rows="3" cols="50"></textarea><br />
-<button onclick="ask()">Ask</button>
-<p><strong>Answer:</strong> <span id="response"></span></p>
-
-<script>
-    async function ask() {
-        const question = document.getElementById("userInput").value;
-        const ocrText = `@ocrText`;
-        const res = await fetch('/Claim/AskAssistant', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ question, ocrText })
-        });
-        const data = await res.json();
-        document.getElementById("response").innerText = data.response;
-    }
-</script>  *@
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
