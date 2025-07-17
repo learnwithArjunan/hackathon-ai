@@ -2,7 +2,9 @@
 @{
     ViewData["Title"] = "Claim Validator";
     bool hasClaimData = Model.Any(m => m.ClaimData != null && m.ClaimData.Any());
+    var currentType = Context.Request.Query["type"].ToString()?.ToLower();
 }
+
 
 <!DOCTYPE html>
 <html>
@@ -13,12 +15,26 @@
 </head>
 <body class="bg-light p-5">
     <div class="container">
-        <h2 class="text-center text-secondary fw-bold  mb-6 text-uppercase">Upload Claim Document</h2>
+        <h2 class="text-center text-secondary fw-bold mb-5 text-uppercase">Upload Claim Document</h2>
 
+        <!-- Step 1: Choose Claim Type -->
+        <div class="text-center mb-4">
+            <h5 class="mb-3">Choose your claim validation type</h5>
+            <div class="d-flex justify-content-center gap-4 flex-wrap">
+                <a href="@Url.Action("Upload", "Claim", new { type = "diagnosis" })" class="btn btn-outline-secondary px-4 py-2 @(currentType == "diagnosis" ? "active" : "")">
+                    Diagnosis Report Validation
+                </a>
+                <a href="@Url.Action("Upload", "Claim", new { type = "itemized" })" class="btn btn-outline-info px-4 py-2 @(currentType == "itemized" ? "active" : "")">
+                    Eligible Claim from Itemized Bill
+                </a>
+            </div>
+        </div>
+
+        <!-- Step 2: Upload Form -->
         <div class="row mb-3">
-            <!-- Upload Form -->
-            <div class="col-md-12 mt-5 d-flex gap-2">
+            <div class="col-md-12 mt-4 d-flex gap-2 flex-wrap">
                 <form asp-action="UploadDetails" asp-controller="Claim" enctype="multipart/form-data" method="post" class="d-flex gap-2 flex-wrap">
+                    <input type="hidden" name="claimType" value="@currentType" />
                     <input type="text" id="name" name="name" class="form-control" placeholder="Name" required style="max-width: 200px;" />
                     <input type="file" id="docFile" name="docFile" class="form-control" required style="max-width: 300px;" />
                     <button type="submit" class="btn btn-primary">Save</button>
@@ -26,26 +42,25 @@
 
                 @if (Model != null && Model.Any())
                 {
-                    <!-- Validate Button -->
                     <form asp-action="Validate" asp-controller="Claim" method="post">
                         <button type="submit" class="btn btn-success">Validate</button>
                     </form>
-                    <!-- Reset Button -->
                     <form asp-action="Reset" asp-controller="Claim" method="post">
                         <button type="submit" class="btn btn-warning">Reset</button>
-                    </form>                  
+                    </form>
                 }
             </div>
         </div>
 
-        <!-- Table Display -->
+        <!-- Step 3: Display Uploaded Documents -->
         @if (Model != null && Model.Any())
         {
             <table class="table table-bordered table-striped">
                 <thead class="table-dark">
                     <tr>
-                        <th> Name</th>
+                        <th>Name</th>
                         <th>Document</th>
+                        <th>Type</th>
                         @if (hasClaimData)
                         {
                             <th>Claims Data</th>
@@ -59,6 +74,7 @@
                         <tr>
                             <td>@doc.Name</td>
                             <td>@doc.FileName</td>
+                            <td>@doc.ClaimType?.ToUpperInvariant()</td>
                             @if (hasClaimData)
                             {
                                 <td>
@@ -78,24 +94,32 @@
                                 </td>
                             }
                             <td>
-                                @if( doc.Status == "Rejected")
+                                @if (doc.Status == "Rejected")
                                 {
                                     <a asp-action="ViewDetails"
-                                     asp-controller="Claim"
-                                     asp-route-filename="@doc.FileName"
-                                     asp-route-name="@doc.Name"
-                                     asp-route-status="@doc.Status"
-                                     class="badge bg-danger text-dark text-decoration-none">
-                                     @doc.Status
-                                  </a>
+                                       asp-controller="Claim"
+                                       asp-route-filename="@doc.FileName"
+                                       asp-route-name="@doc.Name"
+                                       asp-route-status="@doc.Status"
+                                       class="badge bg-danger text-dark text-decoration-none">
+                                        @doc.Status
+                                    </a>
                                 }
-                                else if (doc.Status=="Ready to validate")
+                                else if (doc.Status == "Ready to validate")
                                 {
                                     <span class="badge bg-primary">@doc.Status</span>
                                 }
                                 else
                                 {
-                                  <span class="badge bg-success">@doc.Status</span>
+                                    @* <span class="badge bg-success">@doc.Status</span> *@
+                                    <a asp-action="ViewDetails"
+                                       asp-controller="Claim"
+                                       asp-route-filename="@doc.FileName"
+                                       asp-route-name="@doc.Name"
+                                       asp-route-status="@doc.Status"
+                                       class="badge bg-success">
+                                        @doc.Status
+                                    </a>
                                 }
                             </td>
                         </tr>

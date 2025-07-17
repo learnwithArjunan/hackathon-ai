@@ -26,7 +26,7 @@ public class ClaimController : Controller
         return View(_claimInfo);
     }
     [HttpPost]
-    public async Task<IActionResult> UploadDetails(string name, IFormFile docFile)
+    public async Task<IActionResult> UploadDetails(string name, IFormFile docFile, string claimType)
     {
         if (docFile != null && docFile.Length > 0 && !string.IsNullOrEmpty(name))
         {
@@ -47,7 +47,8 @@ public class ClaimController : Controller
             {
                 Name = name,
                 FileName = fileName,
-                Status = "Ready to validate"
+                Status = "Ready to validate",
+                ClaimType = claimType
             });
         }
 
@@ -94,8 +95,15 @@ public class ClaimController : Controller
             }
 
             var ocrText = _ocrService.ExtractText(filePath);
-            var jsonOutput = await _openAiService.ExtractFieldsAsync(ocrText);
+
+            string jsonOutput = string.Empty;
+            if (doc.ClaimType == "diagnosis")
+                jsonOutput = await _openAiService.ExtractFieldsAsync(ocrText);
+            else if (doc.ClaimType == "itemized")
+                jsonOutput = await _openAiService.GetNonClaimableItemsAsync(ocrText);
+            
             var claimData = JsonConvert.DeserializeObject<ClaimData>(jsonOutput);
+
             doc.ClaimData = new List<string>
             {
                 "Date:" + claimData.Date,
@@ -124,6 +132,8 @@ public class ClaimController : Controller
         if (string.IsNullOrEmpty(fileName))
             return BadRequest("Filename is required.");
 
+        string claimType = Request.Form["claimType"];
+
         var filePath = Path.Combine("uploads", fileName);
         Directory.CreateDirectory("uploads");
 
@@ -137,6 +147,10 @@ public class ClaimController : Controller
         ViewBag.Result = validation;
         ViewBag.RawText = ocrText;
         ViewBag.Status = status;
+
+        ViewBag.NonPayableItems = validation.NonPayableItems;
+        ViewBag.NonPayableAmount = validation.NonClaimableTotal;
+        ViewBag.ApprovedAmount = validation.ApprovedAmount;
 
         return View("Result");
     }

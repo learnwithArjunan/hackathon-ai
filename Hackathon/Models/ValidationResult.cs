@@ -6,5 +6,9 @@ namespace Hackathon.Models
         public bool IsHospitalApproved { get; set; }
         public bool IsDiagnosisCovered { get; set; }
         public bool IsEligible => IsDateValid && IsHospitalApproved && IsDiagnosisCovered;
+
+        public List<string> NonPayableItems { get; set; } = new();
+        public decimal NonClaimableTotal { get; set; }
+        public decimal ApprovedAmount { get; set; }
     }
 }

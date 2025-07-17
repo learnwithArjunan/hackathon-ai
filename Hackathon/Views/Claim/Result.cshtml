@@ -34,6 +34,22 @@
     </div>
 </div>
 
+@if (ViewBag.NonPayableItems.Count > 0)
+{
+    <div class="alert alert-warning">
+        <strong>Non-Claimable Items Detected:</strong>
+        <ul>
+            @foreach (var item in ViewBag.NonPayableItems)
+            {
+                <li>@item</li>
+            }
+        </ul>
+        <p><strong>Amount Deducted:</strong> ₹@ViewBag.NonPayableAmount</p>
+        <p><strong>Approved Claim Amount:</strong> ₹@ViewBag.ApprovedAmount</p>
+    </div>
+}
+
+
 @* <h3>Chat with AI Assistant</h3>
 <textarea id="userInput" rows="3" cols="50"></textarea><br />
 <button onclick="ask()">Ask</button>
@@ -51,4 +67,4 @@
         const data = await res.json();
         document.getElementById("response").innerText = data.response;
     }
-</script> *@
+</script>  *@
